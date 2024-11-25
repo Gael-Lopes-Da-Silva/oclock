@@ -1,0 +1,287 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Oclock</title>
+
+        <style>
+            @font-face {
+                font-family: "FX LED";
+                src: url("assets/FX_LED.ttf");
+            }
+
+            @font-face {
+                font-family: "Hack";
+                src: url("assets/Hack.ttf");
+            }
+
+            html {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            body {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background-color: #0b0b0b;
+            }
+
+            #clock {
+                display: flex;
+                align-items: center;
+                border: #2b2b2b solid 8px;
+                border-radius: 30px;
+                padding: 10px 40px;
+            }
+
+            #clock_days {
+                margin-right: 50px;
+                display: flex;
+                flex-direction: column;
+                color: #2b2b2b;
+                font-weight: bold;
+                font-family: "Hack", monospace;
+            }
+
+            #clock_body {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+
+            #clock_time {
+                display: flex;
+                justify-content: start;
+                align-items: center;
+                color: #ffffff;
+                line-height: 90%;
+                font-size: 10rem;
+                font-weight: bold;
+                font-family: "FX LED", monospace;
+            }
+
+            #clock_events {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #2b2b2b;
+            }
+
+            #clock_events > i {
+                margin: 5px;
+            }
+
+            .active {
+                color: #ffffff;
+            }
+
+            .separator {
+                animation: blinker 1s cubic-bezier(0.075, 0.82, 0.165, 1) infinite;
+            }
+
+            @keyframes blinker {
+                50% {
+                    opacity: 0;
+                }
+            }
+        </style>
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css" />
+    </head>
+
+    <body>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+        <script>
+            function updateHours() {
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, "0");
+
+                $("#clock_time_hours").text(hours);
+            }
+
+            function updateMinutes() {
+                const now = new Date();
+                const minutes = now.getMinutes().toString().padStart(2, "0");
+
+                $("#clock_time_minutes").text(minutes);
+            }
+
+            function updateSeconds() {
+                const now = new Date();
+                const seconds = now.getSeconds().toString().padStart(2, "0");
+
+                $("#clock_time_seconds").text(seconds);
+            }
+
+            function updateDays() {
+                const now = new Date();
+                const dayIndex = now.getDay();
+
+                $("#clock_days span").removeClass("active");
+                $("#clock_days span").eq((dayIndex + 6) % 7).addClass("active");
+            }
+
+            function updateEvents() {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = now.getMonth();
+                const day = now.getDate();
+
+                const calculateEaster = (year) => {
+                    const a = year % 19;
+                    const b = Math.floor(year / 100);
+                    const c = year % 100;
+                    const d = Math.floor(b / 4);
+                    const e = b % 4;
+                    const f = Math.floor((b + 8) / 25);
+                    const g = Math.floor((b - f + 1) / 3);
+                    const h = (19 * a + b - d - g + 15) % 30;
+                    const i = Math.floor(c / 4);
+                    const k = c % 4;
+                    const l = (32 + 2 * e + 2 * i - h - k) % 7;
+                    const m = Math.floor((a + 11 * h + 22 * l) / 451);
+                    const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
+                    const day = ((h + l - 7 * m + 114) % 31) + 1;
+                    return new Date(year, month, day);
+                };
+
+                const isDateMatch = (date1, date2) => {
+                    return (
+                        date1.getFullYear() === date2.getFullYear() &&
+                        date1.getMonth() === date2.getMonth() &&
+                        date1.getDate() === date2.getDate()
+                    );
+                };
+
+                const newMoonDates = [
+                    new Date(2024, 0, 11), // January 11
+                    new Date(2024, 1, 9), // February 9
+                    new Date(2024, 2, 10), // March 10
+                    new Date(2024, 3, 8), // April 8
+                    new Date(2024, 4, 8), // May 8
+                    new Date(2024, 5, 6), // June 6
+                    new Date(2024, 6, 6), // July 6
+                    new Date(2024, 7, 4), // August 4
+                    new Date(2024, 8, 3), // September 3
+                    new Date(2024, 9, 2), // October 2
+                    new Date(2024, 10, 1), // November 1
+                    new Date(2024, 10, 30), // November 30
+                    new Date(2024, 11, 30), // December 30
+                ];
+
+                if (month === 11 && day === 25) {
+                    $("#christmass").addClass("active");
+                } else if (month === 9 && day === 31) {
+                    $("#halloween").addClass("active");
+                } else if (month === 1 && day === 14) {
+                    $("#valentine").addClass("active");
+                } else if (month === 0 && day === 1) {
+                    $("#new_year").addClass("active");
+                } else if (newMoonDates.some((newMoon) => isDateMatch(newMoon, now))) {
+                    $("#new_moon").addClass("active");
+                } else if (month === 3 && day === 1) {
+                    $("#april_fool").addClass("active");
+                } else if (month === 2 && day === 17) {
+                    $("#st_patrick").addClass("active");
+                } else if (isDateMatch(new Date(calculateEaster(year) - 47 * 24 * 60 * 60 * 1000), now)) {
+                    $("#carnival").addClass("active");
+                } else if (isDateMatch(calculateEaster(year), now)) {
+                    $("#easter").addClass("active");
+                }
+            }
+
+            $(function () {
+                setInterval(() => {
+                    updateDays();
+                    updateHours();
+                    updateMinutes();
+
+                    const url = new URL(window.location.toLocaleString())
+                        .searchParams;
+                    if (url.get("seconds") == "true") {
+                        updateSeconds();
+                    }
+
+                    updateEvents();
+                }, 900);
+
+                updateDays();
+                updateHours();
+                updateMinutes();
+
+                const url = new URL(window.location.toLocaleString()).searchParams;
+                if (url.get("seconds") == "true") {
+                    $(".seconds").show();
+                    updateSeconds();
+                }
+
+                updateEvents();
+
+                $("body").keypress(function (event) {
+                    if (String.fromCharCode(event.which) == "s") {
+                        const url = new URL(window.location.toLocaleString()).searchParams;
+
+                        if (url.get("seconds") == "true") {
+                            window.history.replaceState(null, null, "?seconds=false");
+                            $(".seconds").hide();
+                        } else {
+                            window.history.replaceState(null, null, "?seconds=true");
+                            $(".seconds").show();
+
+                            updateSeconds();
+                        }
+                    }
+                });
+
+                setInterval(() => {
+                    $("#infos").hide();
+                }, 5000);
+            });
+        </script>
+
+        <div id="clock">
+            <div id="clock_days">
+                <span>MON</span>
+                <span>TUE</span>
+                <span>WED</span>
+                <span>THU</span>
+                <span>FRI</span>
+                <span>SAT</span>
+                <span>SUN</span>
+            </div>
+            <div id="clock_body">
+                <div id="clock_time">
+                    <span id="clock_time_hours">00</span>
+                    <span class="separator">:</span>
+                    <span id="clock_time_minutes">00</span>
+                    <div class="seconds" style="display: none">
+                        <span class="separator">:</span
+                        ><span id="clock_time_seconds">00</span>
+                    </div>
+                </div>
+                <div id="clock_events">
+                    <i id="christmass" class="fa-solid fa-sleigh"></i>
+                    <i id="halloween" class="fa-solid fa-ghost"></i>
+                    <i id="valentine" class="fa-solid fa-heart"></i>
+                    <i id="new_year" class="fa-solid fa-champagne-glasses"></i>
+                    <i id="new_moon" class="fa-solid fa-moon"></i>
+                    <i id="april_fool" class="fa-solid fa-fish"></i>
+                    <i id="st_patrick" class="fa-solid fa-clover"></i>
+                    <i id="carnival" class="fa-solid fa-masks-theater"></i>
+                    <i id="easter" class="fa-solid fa-egg"></i>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
